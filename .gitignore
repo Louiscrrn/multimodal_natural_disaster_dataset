@@ -1,0 +1,13 @@
+.venv
+
+data/raw/
+data/raw/**
+
+*/other/
+other/
+
+__pycache__/
+**/__pycache__/
+
+.DS_Store
+Thumbs.db
