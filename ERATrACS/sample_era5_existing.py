@@ -36,6 +36,7 @@ BASIN_BBOX = {
 RENAME_COLUMNS = {
     "sid": "Storm_ID",
     "name": "Storm_Name",
+    "number" : "number",
     "basin": "Ocean_Basin",
     "season": "Year",
     "time_stamp": "Timestamp",
@@ -169,7 +170,14 @@ def sample_era5_existing(nc_path, df):
             .rename(columns={v_nc: v for v, v_nc in ERA5_VAR_MAP.items()})
         )
 
-        results.append(pd.concat([g.reset_index(drop=True), era_df], axis=1))
+        #results.append(pd.concat([g.reset_index(drop=True), era_df], axis=1))
+        g_reset = g.reset_index(drop=True)
+
+        # éviter toute collision de colonnes (ex: number, season, etc.)
+        era_df = era_df.loc[:, ~era_df.columns.isin(g_reset.columns)]
+
+        results.append(pd.concat([g_reset, era_df], axis=1))
+
 
     return pd.concat(results, ignore_index=True)
 
@@ -195,8 +203,11 @@ def post_process_final(df):
     if "mean_sea_level_pressure" in df.columns:
         df["mean_sea_level_pressure_hpa"] = df["mean_sea_level_pressure"] / 100.0
 
+    if "number.1" in df.columns:
+        df = df.drop(columns=["number.1"])
+        
     final_columns = [
-        "sid", "name", "basin", "season", "time_stamp",
+        "sid", "name", "basin", "season", "time_stamp", "number",
         "lat", "lon", "wind", "pressure",
         "storm_speed", "storm_dir",
         "2m_temperature", "mean_sea_level_pressure_hpa",
@@ -246,7 +257,7 @@ def parse_args():
     parser.add_argument(
         "--input-ibtracs",
         type=str,
-        default=str(PROCESSED_DIR / "other/ibtracs_usa_20251216.csv"),
+        default=str(PROCESSED_DIR / "other/ibtracs_usa_20251217_170934.csv"),
         help="Path to IBTrACS CSV file"
     )
 
