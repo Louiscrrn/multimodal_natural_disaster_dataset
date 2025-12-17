@@ -4,10 +4,7 @@ import xarray as xr
 from pathlib import Path
 from tqdm import tqdm
 from datetime import datetime
-
-# =====================
-# CONFIG
-# =====================
+import argparse
 
 ERA5_DIR = Path("../data/raw/era5_yearly")
 PROCESSED_DIR = Path("../data/processed")
@@ -27,14 +24,13 @@ ERA5_VAR_MAP = {
     "mean_sea_level_pressure": "msl",
 }
 
-# bbox = [north, west, south, east] (degrés)
 BASIN_BBOX = {
     "NA": [60, -100, 0, -10],
     "EP": [40, -160, 0, -80],
     "WP": [50, 100, 0, 180],
     "NI": [30, 40, -5, 100],
     "SI": [0, 20, -40, 100],
-    "SP": [0, 160, -40, -120],  # traverse l’anti-méridien
+    "SP": [0, 160, -40, -120],  
 }
 
 RENAME_COLUMNS = {
@@ -57,9 +53,6 @@ RENAME_COLUMNS = {
 }
 
 
-# =====================
-# UTILS
-# =====================
 
 def normalize_lon_0_360(lon):
     return np.mod(np.asarray(lon, dtype=float), 360.0)
@@ -77,8 +70,7 @@ def clean_basin(b):
 
 def haversine_km_periodic_lon(lat1, lon1, lat2, lon2):
     """
-    Haversine correcte quand les longitudes traversent l’anti-méridien.
-    lon1/lon2 peuvent être en [-180,180] ou [0,360], ça marche quand même.
+    Haversine
     """
     R = 6371.0
 
@@ -89,15 +81,11 @@ def haversine_km_periodic_lon(lat1, lon1, lat2, lon2):
 
     dlat = lat2 - lat1
 
-    # IMPORTANT : différence angulaire minimale dans [-pi, pi]
     dlon = (lon2 - lon1 + np.pi) % (2 * np.pi) - np.pi
 
     a = np.sin(dlat / 2) ** 2 + np.cos(lat1) * np.cos(lat2) * np.sin(dlon / 2) ** 2
     return 2 * R * np.arcsin(np.sqrt(a))
 
-# =====================
-# LOAD IBTRACS
-# =====================
 
 def load_ibtracs(path, years):
     df = pd.read_csv(path)
@@ -118,9 +106,6 @@ def load_ibtracs(path, years):
     )
     return df
 
-# =====================
-# FILTER IBTRACS BY BBOX
-# =====================
 
 def filter_ibtracs_in_bbox(df, bbox):
     """
@@ -136,14 +121,10 @@ def filter_ibtracs_in_bbox(df, bbox):
     if west <= east:
         in_lon = (lon >= west) & (lon <= east)
     else:
-        # bbox traverse l’anti-méridien (ex: 160 -> -120)
         in_lon = (lon >= west) | (lon <= east)
 
     return df[in_lat & in_lon].copy()
 
-# =====================
-# ERA5 SAMPLING
-# =====================
 
 def sample_era5_existing(nc_path, df):
     ds = xr.open_dataset(nc_path)
@@ -156,7 +137,6 @@ def sample_era5_existing(nc_path, df):
 
     time_dim = "time" if "time" in ds.dims else "valid_time"
 
-    # Détection automatique de la convention ERA5
     lon_min = float(ds.longitude.min())
     lon_max = float(ds.longitude.max())
 
@@ -165,10 +145,10 @@ def sample_era5_existing(nc_path, df):
     df = df.copy()
 
     if era5_is_0360:
-        # ERA5 en [0,360]
+        # ERA5 in [0,360]
         df["lon_for_sampling"] = normalize_lon_0_360(df["lon"].values)
     else:
-        # ERA5 en [-180,180]
+        # ERA5 in [-180,180]
         df["lon_for_sampling"] = wrap_lon180(df["lon"].values)
 
     results = []
@@ -194,9 +174,6 @@ def sample_era5_existing(nc_path, df):
     return pd.concat(results, ignore_index=True)
 
 
-# =====================
-# POST PROCESS
-# =====================
 
 def post_process_final(df):
     df = df.copy()
@@ -205,7 +182,6 @@ def post_process_final(df):
     if not required.issubset(df.columns):
         raise ValueError(f"Colonnes manquantes pour distance: {required - set(df.columns)}")
 
-    # Pour le calcul, on remet tout en [-180,180] (optionnel) :
     lon_ib = wrap_lon180(df["lon"].values)
     lon_era = wrap_lon180(df["longitude"].values)
 
@@ -226,7 +202,6 @@ def post_process_final(df):
         "2m_temperature", "mean_sea_level_pressure_hpa",
         "10m_u_component_of_wind", "10m_v_component_of_wind",
         "era5_spatial_error_km",
-        # tu peux garder aussi les coords ERA5 si tu veux auditer :
         "latitude", "longitude",
     ]
     final_columns = [c for c in final_columns if c in df.columns]
@@ -237,7 +212,6 @@ def post_process_final(df):
         .reset_index(drop=True)
     )
 
-    # Sanity check (optionnel mais utile)
     worst = df_final["era5_spatial_error_km"].max()
     print(f"[CHECK] max era5_spatial_error_km = {worst:.2f} km")
     if worst > 2000:
@@ -248,16 +222,46 @@ def post_process_final(df):
     df_final = df_final.rename(columns=RENAME_COLUMNS)
     return df_final
 
-# =====================
-# MAIN
-# =====================
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Sample ERA5 data on IBTrACS cyclone tracks and post-process dataset"
+    )
+
+    parser.add_argument(
+        "--years",
+        type=int,
+        nargs="+",
+        default=[2022, 2023, 2024],
+        help="Years to process (e.g. --years 2022 2023)"
+    )
+
+    parser.add_argument(
+        "--basins",
+        type=str,
+        nargs="+",
+        default=["EP", "NA", "NI", "SI", "SP", "WP"],
+        help="Basins to process (e.g. --basins NA EP WP)"
+    )
+
+    parser.add_argument(
+        "--input-ibtracs",
+        type=str,
+        default=str(PROCESSED_DIR / "other/ibtracs_usa_20251216.csv"),
+        help="Path to IBTrACS CSV file"
+    )
+
+    return parser.parse_args()
+
 
 if __name__ == "__main__":
 
-    path_ibtracs = PROCESSED_DIR / "other/ibtracs_usa_20251216.csv"
-
-    years = [2022, 2023, 2024]
-    basins = ["EP", "NA", "NI", "SI", "SP", "WP"]
+    args = parse_args()
+    years = args.years
+    basins = args.basins
+    path_ibtracs = Path(args.input_ibtracs)
+    print("Years :", years)
+    print("Basins:", basins)
+    print("IBTrACS:", path_ibtracs)
 
     df_ib = load_ibtracs(path_ibtracs, years=[min(years), max(years)])
 
@@ -294,4 +298,3 @@ if __name__ == "__main__":
     print("\n[OK] Final dataset saved:", out_csv)
     print("Shape:", df_final.shape)
     print("Cyclones:", df_final["Storm_ID"].nunique())
-

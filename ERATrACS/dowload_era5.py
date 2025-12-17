@@ -1,13 +1,9 @@
-import numpy as np
 import pandas as pd
 import cdsapi
 from pathlib import Path
-from datetime import datetime
 import time
+import argparse
 
-# =====================
-# CONFIG
-# =====================
 
 ERA5_OUT = Path("../data/raw/era5_yearly")
 ERA5_OUT.mkdir(parents=True, exist_ok=True)
@@ -44,10 +40,6 @@ BASIN_MONTHS = {
     "WP": [4, 5, 6, 7, 8, 9, 10, 11, 12],
 }
 
-# =====================
-# UTILS
-# =====================
-
 def cds_day_list(days):
     return [f"{int(d):02d}" for d in sorted(set(days))]
 
@@ -57,10 +49,6 @@ def clean_basin(b):
     if isinstance(b, str) and b.startswith("b'"):
         return b[2:-1]
     return b
-
-# =====================
-# LOAD IBTRACS (only for calendar info)
-# =====================
 
 def load_ibtracs_for_calendar(path, year, basin):
     df = pd.read_csv(path)
@@ -77,10 +65,6 @@ def load_ibtracs_for_calendar(path, year, basin):
         return None
 
     return df_y
-
-# =====================
-# DOWNLOAD ERA5
-# =====================
 
 def download_era5_year_basin(
     year,
@@ -122,20 +106,57 @@ def download_era5_year_basin(
     )
     print(f"[OK] Saved {out_nc.name} ({time.perf_counter() - t0:.1f}s)")
 
-# =====================
-# MAIN
-# =====================
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Download ERA5 data by year and basin using IBTrACS calendar"
+    )
+
+    parser.add_argument(
+        "--years",
+        type=int,
+        nargs="+",
+        default=[2022, 2023, 2024],
+        help="Years to download (e.g. --years 2022 2023)"
+    )
+
+    parser.add_argument(
+        "--basins",
+        type=str,
+        nargs="+",
+        default=["EP", "NA", "NI", "SI", "SP", "WP"],
+        help="Basins to download (e.g. --basins NA EP WP)"
+    )
+
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Force re-download even if files already exist"
+    )
+
+    return parser.parse_args()
+
 
 if __name__ == "__main__":
+
+    args = parse_args()
 
     PROCESSED_DIR = Path("../data/processed")
     path_ibtracs = PROCESSED_DIR / "other/ibtracs_usa_20251216.csv"
 
-    years = [2022, 2023, 2024]
-    basins = ["EP", "NA", "NI", "SI", "SP", "WP"]
+    years = args.years
+    basins = args.basins
+    force = args.force
+
+    print("Years :", years)
+    print("Basins:", basins)
+    print("Force :", force)
 
     for year in years:
         for basin in basins:
+            if basin not in BASIN_BBOX:
+                print(f"[SKIP] Unknown basin {basin}")
+                continue
+
             df_cal = load_ibtracs_for_calendar(
                 path_ibtracs,
                 year=year,
@@ -146,11 +167,23 @@ if __name__ == "__main__":
                 print(f"[SKIP] No IBTrACS data for {year} {basin}")
                 continue
 
+            n_obs = len(df_cal)
+            n_cyclones = df_cal["sid"].nunique()
+            period_start = df_cal["time_stamp"].min()
+            period_end = df_cal["time_stamp"].max()
+
+            print(
+                f"[IBTrACS] {year} {basin} | "
+                f"cyclones: {n_cyclones} | "
+                f"observations: {n_obs} | "
+                f"period: {period_start} → {period_end}"
+                )
+
             download_era5_year_basin(
                 year=year,
                 basin=basin,
                 df_calendar=df_cal,
-                force=False,
+                force=force,
             )
 
     print("\n[DONE] ERA5 download pipeline finished")
