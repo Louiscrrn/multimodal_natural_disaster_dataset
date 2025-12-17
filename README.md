@@ -30,8 +30,6 @@ multimodal_natural_disaster_dataset/
 
 ERATrACS is a data preprocessing module that integrates IBTrACS cyclone track data with ERA5 reanalysis meteorological variables. It produces a clean, tabular dataset in CSV format, suitable for analysis, modeling, and research on tropical cyclones.
 
-The project focuses on reproducibility, data quality assurance, and spatial consistency by collocating ERA5 data at IBTrACS observation points using nearest-neighbor sampling.
-
 ### Features
 
 - **Data Integration**: Merges cyclone tracks from IBTrACS with ERA5 reanalysis data.
