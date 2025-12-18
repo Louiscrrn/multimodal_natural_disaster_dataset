@@ -7,25 +7,32 @@ This project aims to build a clean, reproducible, and multimodal dataset for nat
 ```
 multimodal_natural_disaster_dataset/
 ├── data/
-│   ├── raw/
-│   │   ├── IBTrACS.ALL.v04r01.nc
-│   │   └── era5_yearly/
-│   │       ├── era5_2021_SI.nc
-│   │       ├── era5_2022_*.nc
-│   │       └── ...
+│   ├── raw/                  # (Locally generated raw data)
 │   └── processed/
 │       └── ibtracs_era5_*.csv
 ├── ERATrACS/
-│   ├── download_era5.py
+│   ├── dowload_era5.py
+│   ├── process_IBTrACS.py
 │   ├── sample_era5_existing.py
 │   └── notebooks/
-│       ├── analysis.ipynb
+│       └── analysis.ipynb
+├── Final_Dataset/
+│   └── TC_Clean_Dataset.zarr/
+│       ├── images/
+│       ├── news/
+│       ├── quality_meta/
+│       ├── tabular/
+│       ├── timestamps/
 │       └── ...
 ├── GDELT/
-│   ├── gdelt_loading_files.py 
-│   ├── gdelt_cyclone_utils.py   
 │   ├── gdelt_cyclone_pipeline.py
-│   ├── get_daily_mentions.py
+│   ├── gdelt_cyclone_utils.py
+│   ├── gdelt_loading_files.py
+│   └── get_daily_mentions.py
+├── reliefweb/
+│   ├── cleaning_original_tab.py
+│   └── reliefweb.py
+├── main.py
 ├── README.md
 └── requirements.txt
 ```
