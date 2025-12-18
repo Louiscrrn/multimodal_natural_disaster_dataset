@@ -231,6 +231,8 @@ def post_process_final(df):
         cols = [c for c in ["time_stamp","basin","lat","lon","latitude","longitude","era5_spatial_error_km"] if c in df_final.columns]
         print(df_final.sort_values("era5_spatial_error_km", ascending=False)[cols].head(10).to_string(index=False))
 
+    df_final = df_final.drop(columns=["latitude", "longitude"])
+
     df_final = df_final.rename(columns=RENAME_COLUMNS)
     return df_final
 
