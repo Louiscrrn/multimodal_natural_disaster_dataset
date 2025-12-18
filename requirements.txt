@@ -5,3 +5,5 @@ matplotlib
 scipy
 plotly
 requests
+cdsapi
+tqdm
