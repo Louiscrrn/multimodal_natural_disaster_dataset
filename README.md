@@ -208,7 +208,7 @@ The final stage of the pipeline merges the tabular physical data (ERATrACS + Rel
 
 The script `main.py` performs the following operations:
 
-1.  **Tabular Consolidation**: Loads the ERATrACS CSV and aligns it with daily GDELT news mentions.
+1.  **Tabular Consolidation**: Loads the ERATrACS + ReliefWeb CSV and aligns it with daily GDELT news mentions.
 2.  **S3 Querying**: Connects to the `noaa-nesdis-tcprimed-pds` S3 bucket to locate NetCDF files corresponding to specific ATCF storm IDs and years.
 3.  **Image Processing**:
     * **Subgroup Selection**: Prioritizes GPROF subgroups (S1, S2, S3) to ensure consistent variable availability.
