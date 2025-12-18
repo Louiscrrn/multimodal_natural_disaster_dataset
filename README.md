@@ -149,6 +149,49 @@ Each row corresponds to a cyclone–day pair and includes:
 
 This table can be directly merged with the ERATrACS output to support joint physical–media analyses of tropical cyclones.
 
+## ReliefWeb
+
+The ReliefWeb module adds a humanitarian layer to the dataset by extracting "ground truth" impact data (fatalities, injuries, displacement) from Situation Reports published by the UN Office for the Coordination of Humanitarian Affairs (OCHA). This allows for the correlation of physical cyclone intensity with real-world human consequences.
+
+### Features
+
+- **Relevance Filtering**: Uses a scoring algorithm to distinguish between specific storm reports and generic humanitarian documents.
+- **Multidimensional Impact**: Extracts data on casualties, injuries, displacement, and disease outbreaks.
+- **Source Traceability**: Every extracted data point is linked to its original report URL for verification.
+- **Broadcasting**: Propagates the global impact of a storm to all its track points (temporal broadcasting) to facilitate track-based analysis.
+
+### Methodology
+
+The enrichment pipeline processes the physical track data through four stages:
+
+1.  **Aggregation**: Identifies unique storms (Name + Year) from the processed IBTrACS dataset.
+2.  **API Querying**: Iterates through multiple search strategies (e.g., *"Cyclone [Name] [Year]"*, *"Hurricane [Name]"*) to maximize report retrieval from the ReliefWeb API.
+3.  **Intelligent Scoring**: Filters reports based on title matches, keyword density, and temporal alignment. Reports with low relevance scores (e.g., "Annual Funding Appeal") are discarded.
+4.  **Regex Extraction**: Applies Natural Language Processing (Regex) to extract numerical data associated with specific contexts (e.g., "killed", "evacuated", "cholera").
+
+### Output
+
+The enriched dataset is saved to:
+```bash
+data/processed/cyclones_2022_2023_enriched.csv
+```
+It appends the following humanitarian metrics to the physical track data:
+
+* RW_Casualty_Info: Reported death toll or context phrase.
+* RW_Injured_Info: Count of injured persons.
+* RW_Evacuated_Displaced: Displacement and evacuation figures.
+* RW_Affected_Population: Estimates of the total affected population.
+* RW_Disease_Context: Mentions of post-disaster health issues (e.g., cholera, dengue).
+* RW_Report_Link: Direct URL to the source report.
+
+Usage
+To run the enrichment pipeline:
+
+```Bash
+
+python ReliefWeb/enrich_cyclone_data.py
+```
+
 ## TC-PRIMED & Zarr Integration
 
 The final stage of the pipeline merges the tabular physical data (ERATrACS) and the news media data (GDELT) with high-resolution satellite imagery from the **NOAA TC-PRIMED** dataset. The result is a unified, multimodal dataset stored in **Zarr** format, optimized for deep learning and large-scale spatio-temporal analysis.
