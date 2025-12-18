@@ -149,6 +149,48 @@ Each row corresponds to a cyclone–day pair and includes:
 
 This table can be directly merged with the ERATrACS output to support joint physical–media analyses of tropical cyclones.
 
+## TC-PRIMED & Zarr Integration
+
+The final stage of the pipeline merges the tabular physical data (ERATrACS) and the news media data (GDELT) with high-resolution satellite imagery from the **NOAA TC-PRIMED** dataset. The result is a unified, multimodal dataset stored in **Zarr** format, optimized for deep learning and large-scale spatio-temporal analysis.
+
+### Features
+
+* **Multimodal Alignment**: Synchronizes ERA5 atmospheric data, GDELT news metrics, and TC-PRIMED satellite imagery into a single object.
+* **Satellite Data Extraction**: Automatically fetches and processes passive microwave (GPROF) and infrared (IR) data from NOAA’s S3 bucket.
+* **Spatial Standardization**: Resizes heterogeneous satellite swaths to a uniform 224x224 grid using bilinear interpolation.
+* **Temporal Matching**: Implements a 1.5-hour time-tolerance window to pair cyclone track observations with the nearest available satellite overpass.
+* **Quality Metadata**: Tracks spatial and temporal offsets, such as the distance between the storm center and the satellite footprint, to ensure data integrity.
+
+### Data Processing Pipeline
+
+The script `tc4.py` performs the following operations:
+
+1.  **Tabular Consolidation**: Loads the ERATrACS CSV and aligns it with daily GDELT news mentions.
+2.  **S3 Querying**: Connects to the `noaa-nesdis-tcprimed-pds` S3 bucket to locate NetCDF files corresponding to specific ATCF storm IDs and years.
+3.  **Image Processing**:
+    * **Masking**: Filters sentinel and fill values (e.g., -9999.0) from IR and GPROF products.
+    * **Subgroup Selection**: Prioritizes GPROF subgroups (S1, S2, S3) to ensure consistent variable availability.
+    * **Resizing**: Normalizes all image products (Precipitation, Water Path, IR) to a fixed 224x224 shape.
+4.  **Zarr Serialization**: Writes data into a hierarchical Zarr structure, using chunks optimized for per-timestamp access.
+
+### Dataset Structure (Zarr)
+
+The output `TC_Clean_Dataset.zarr` is organized by `atcf_id` (e.g., `AL092022`):
+
+| Group | Description |
+| :--- | :--- |
+| **`images/`** | 3D arrays `(time, 224, 224)` for `ir`, `surface_precip`, `convective_precip`, `ice_water_path`, etc. |
+| **`tabular/`** | 1D arrays for physical metrics (wind speed, pressure, ERA5 variables) and ReliefWeb impact data. |
+| **`news/`** | Daily GDELT article counts, encoded URL lists, and news source metadata. |
+| **`quality_meta/`** | Metadata including `time_diff_min` and `center_dist_km` for satellite alignment. |
+
+### Usage
+
+To build the final multimodal dataset, ensure you have S3 access configured and run:
+
+```bash
+python tc4.py
+
 ## Contributing
 
 This project is part of an academic coursework (DAES, 4A). For contributions or modifications, ensure adherence to the reproducibility requirements and data quality standards.
