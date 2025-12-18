@@ -233,6 +233,7 @@ To build the final multimodal dataset, ensure you have S3 access configured and 
 
 ```bash
 python tc4.py
+```
 
 ## Contributing
 
