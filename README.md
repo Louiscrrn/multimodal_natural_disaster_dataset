@@ -189,7 +189,7 @@ To run the enrichment pipeline:
 
 ```Bash
 
-python ReliefWeb/enrich_cyclone_data.py
+python reliefweb/reliefweb.py
 ```
 
 ## TC-PRIMED & Zarr Integration
