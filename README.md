@@ -194,7 +194,7 @@ python reliefweb/reliefweb.py
 
 ## TC-PRIMED & Zarr Integration
 
-The final stage of the pipeline merges the tabular physical data (ERATrACS) and the news media data (GDELT) with high-resolution satellite imagery from the **NOAA TC-PRIMED** dataset. The result is a unified, multimodal dataset stored in **Zarr** format, optimized for deep learning and large-scale spatio-temporal analysis.
+The final stage of the pipeline merges the tabular physical data (ERATrACS + ReliefWeb) and the news media data (GDELT) with high-resolution satellite imagery from the **NOAA TC-PRIMED** dataset. The result is a unified, multimodal dataset stored in **Zarr** format, optimized for deep learning and large-scale spatio-temporal analysis.
 
 ### Features
 
