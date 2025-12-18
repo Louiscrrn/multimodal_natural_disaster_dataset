@@ -10,4 +10,10 @@ tqdm
 re
 typing
 pathlib
-
+numpy
+s3fs
+zarr
+os
+ast
+datetime
+warnings
