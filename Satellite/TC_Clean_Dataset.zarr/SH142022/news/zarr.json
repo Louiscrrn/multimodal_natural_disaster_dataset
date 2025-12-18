@@ -1,7 +1,0 @@
-{
-  "attributes": {
-    "description": "URLs and sources are strings separated with commas (Use .split(','))"
-  },
-  "zarr_format": 3,
-  "node_type": "group"
-}
