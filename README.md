@@ -21,6 +21,11 @@ multimodal_natural_disaster_dataset/
 │   └── notebooks/
 │       ├── analysis.ipynb
 │       └── ...
+├── GDELT/
+│   ├── gdelt_loading_files.py 
+│   ├── gdelt_cyclone_utils.py   
+│   ├── gdelt_cyclone_pipeline.py
+│   ├── get_daily_mentions.py
 ├── README.md
 └── requirements.txt
 ```
@@ -77,6 +82,72 @@ The pipeline performs several validation steps:
 
 Exploratory and analysis notebooks are available in `ERATrACS/notebooks/` and `ERATrACS/other/`:
 - `analysis.ipynb`: Main analysis notebook.
+
+## GDELT
+
+The GDELT module complements the physical cyclone dataset by extracting news media coverage related to tropical cyclones from the Global Database of Events, Language, and Tone (GDELT).
+This enables a multimodal perspective, linking observed cyclone evolution with how events are reported in the media over time.
+
+This module identifies news articles associated with cyclones using:
+
+* Cyclone names (when available),
+* Storm-related keywords (e.g., cyclone, hurricane, typhoon),
+* Basin-specific geographic keywords,
+* Geographic validation using GDELT Global Knowledge Graph (GKG).
+
+The resulting dataset provides daily aggregated media mentions for each cyclone, including article URLs and sources.
+
+### Data Source
+GDELT: Global Database of Events, Language, and Tone
+
+* High-frequency global news monitoring
+* Updates every 15 minutes
+* Includes article metadata, URLs, sources, and extracted locations
+
+### Methodology
+
+The extraction pipeline follows a two-stage filtering strategy:
+
+1- Fast keyword filtering (Mentions table)
+
+* Searches for cyclone names and storm-related keywords in article titles and sources
+* Uses word boundaries to avoid false positives (e.g., brainstorm)
+* Applies basin-specific geographic keywords to limit unrelated events
+
+2- Geographic validation (GKG)
+
+* When the ocean basin is unknown, candidate articles are validated using extracted locations
+* Articles are retained only if mentioned coordinates fall within a bounding box around the cyclone track
+
+To balance completeness and computational cost, GDELT files are processed at 3-hour intervals, and results are aggregated at the daily scale, with duplicate articles removed based on URL endings.
+
+### Running the pipeline
+To generate the final cyclone–media dataset, run:
+```bash
+python GDELT/get_daily_mentions.py
+```
+
+This script:
+
+* Loads processed IBTrACS–ERA5 cyclone data
+* Builds a ±3-day temporal window around each cyclone timestamp
+* Downloads and filters relevant GDELT files
+* Aggregates unique articles per cyclone and per day
+
+### Output
+
+The final dataset is saved to:
+```bash
+data/processed/cyclones_mentions_gdelt_3h_2022_2023.csv
+```
+Each row corresponds to a cyclone–day pair and includes:
+* Cyclone name
+* Date
+* List of article URLs
+* List of news sources
+* Number of unique articles
+
+This table can be directly merged with the ERATrACS output to support joint physical–media analyses of tropical cyclones.
 
 ## Contributing
 

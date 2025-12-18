@@ -40,16 +40,25 @@ def run_pipeline(df_cyclones, gdelt_mentions_files, gdelt_gkg_files, delta_deg=5
                 df_partial = pd.concat(all_results, ignore_index=True)
                 df_partial.to_csv("cyclones_mentions_partial.csv", index=False)
                 print(f"Partial results saved with {len(df_partial)} articles")
-
-    # -------------------------------
-    # Final concat and save
-    # -------------------------------
-    if all_results:
-        df_all_cyclones = pd.concat(all_results, ignore_index=True)
-        df_all_cyclones.to_csv(output_file, index=False)
-        print(f"Final DataFrame saved with {len(df_all_cyclones)} articles")
-    else:
-        df_all_cyclones = pd.DataFrame()
-        print("No articles found for all cyclones")
     
-    return df_all_cyclones
+    df_final = pd.concat(all_results, ignore_index=True) if all_results else pd.DataFrame()
+    
+    df_final['event_date'] = df_final['event_date'].astype(str)
+
+    # Extract day from 'event_date'
+    df_final['day'] = df_final['event_date'].str[:8]
+
+    # Group by 'day' and aggregate URLs and sources into lists
+    daily_agg = df_final.groupby('day').agg({
+        'url': lambda x: list(x),
+        'source': lambda x: list(x),
+        'cyclone_name': 'first',
+        'EventID': 'count'         # number of articles
+    }).reset_index()
+
+    # index by cyclone_name and day
+    daily_agg.set_index(['cyclone_name', 'day'], inplace=True)
+    daily_agg.rename(columns={'EventID': 'num_articles'}, inplace=True)
+
+    daily_agg.to_csv(output_file)
+    return daily_agg
