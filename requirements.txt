@@ -4,3 +4,4 @@ netCDF4
 matplotlib
 scipy
 plotly
+requests
