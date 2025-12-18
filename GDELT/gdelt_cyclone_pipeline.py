@@ -1,5 +1,5 @@
 import pandas as pd
-from gdelt_cyclone_utils import extract_cyclone_mentions, process_cyclone, basin_keywords
+from gdelt_cyclone_utils import process_cyclone
 
 def run_pipeline(df_cyclones, gdelt_mentions_files, gdelt_gkg_files, delta_deg=5, output_file="cyclones_mentions_gdelt_3h.csv"):
     seen_url_ends = set()
@@ -10,30 +10,44 @@ def run_pipeline(df_cyclones, gdelt_mentions_files, gdelt_gkg_files, delta_deg=5
     for date_str in active_dates:
         try:
             print(f"Processing {date_str}")
-            files = sorted([f for f in gdelt_mentions_files if f.startswith(date_str)])
-            
+
             cyclone_row = df_cyclones[df_cyclones['date'] == date_str].iloc[0]
-            cyclone_name = cyclone_row['Storm_Name'].lower() if cyclone_row['Storm_Name'].lower() != "unnamed" else None
+            cyclone_name = (
+                cyclone_row['Storm_Name'].lower()
+                if cyclone_row['Storm_Name'].lower() != "unnamed"
+                else None
+            )
+            cyclone_id = cyclone_row['Storm_ID']
+
             lat_c, lon_c = cyclone_row['Latitude'], cyclone_row['Longitude']
-            
             basin = cyclone_row.get('Ocean_Basin', None)
-            region_keywords = basin_keywords.get(basin, None)
-            
-            for f in files:
-                url = f"http://data.gdeltproject.org/gdeltv2/{f}"
-                df_file = extract_cyclone_mentions(url, cyclone_name, region_keywords)
-                if df_file.empty:
-                    continue
-                
-                df_file = df_file[~df_file['url_end'].isin(seen_url_ends)]
-                if df_file.empty:
-                    continue
-                
-                seen_url_ends.update(df_file['url_end'].tolist())
-                all_results.append(df_file)
-            
-            print(f"  Found {len(all_results[-1]) if all_results else 0} articles for {date_str}")
-        
+
+            df_day = process_cyclone(
+                date_str=date_str,
+                cyclone_name=cyclone_name,
+                cyclone_id=cyclone_id,
+                lat=lat_c,
+                lon=lon_c,
+                basin=basin,
+                gdelt_files_mentions=gdelt_mentions_files,
+                gdelt_files_gkg=gdelt_gkg_files,
+                delta_deg=delta_deg
+            )
+
+            if df_day.empty:
+                print("  No articles found")
+                continue
+
+            # Deduplicate across days
+            df_day = df_day[~df_day['url_end'].isin(seen_url_ends)]
+            if df_day.empty:
+                continue
+
+            seen_url_ends.update(df_day['url_end'].tolist())
+            all_results.append(df_day)
+
+            print(f"  Found {len(df_day)} articles for {date_str}")
+
         except Exception as e:
             print(f"Error processing {date_str}: {e}")
             if all_results:
@@ -52,6 +66,7 @@ def run_pipeline(df_cyclones, gdelt_mentions_files, gdelt_gkg_files, delta_deg=5
     daily_agg = df_final.groupby('day').agg({
         'url': lambda x: list(x),
         'source': lambda x: list(x),
+        'Storm_ID': 'first',
         'cyclone_name': 'first',
         'EventID': 'count'         # number of articles
     }).reset_index()

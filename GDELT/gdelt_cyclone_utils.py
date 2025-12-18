@@ -130,7 +130,7 @@ def filter_mentions_with_gkg(gkg_url, candidates_df, cyclone_bbox):
 # -------------------------------
 # Process cyclone for a single date
 # -------------------------------
-def process_cyclone(date_str, cyclone_name, lat, lon, basin, gdelt_files_mentions, gdelt_files_gkg, delta_deg=5):
+def process_cyclone(date_str, cyclone_name, cyclone_id, lat, lon, basin, gdelt_files_mentions, gdelt_files_gkg, delta_deg=5):
     bbox = (lat - delta_deg, lat + delta_deg, lon - delta_deg, lon + delta_deg)
     region_words = basin_keywords.get(basin, None) if pd.notna(basin) else None
 
@@ -138,7 +138,12 @@ def process_cyclone(date_str, cyclone_name, lat, lon, basin, gdelt_files_mention
     files_mentions = [f for f in gdelt_files_mentions if f.startswith(date_str)]
     for f in files_mentions:
         url = f"http://data.gdeltproject.org/gdeltv2/{f}"
-        df_fast = extract_cyclone_mentions(url, cyclone_name)
+        df_fast = extract_cyclone_mentions(
+            url,
+            cyclone_name,
+            region_keywords=region_words
+        )
+
         if not df_fast.empty:
             mentions_all.append(df_fast)
     
@@ -156,5 +161,7 @@ def process_cyclone(date_str, cyclone_name, lat, lon, basin, gdelt_files_mention
                 gkg_filtered.append(df_gkg)
         if gkg_filtered:
             return pd.concat(gkg_filtered, ignore_index=True)
+    
+    candidates_df["Storm_ID"]=cyclone_id
 
     return candidates_df
