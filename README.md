@@ -200,21 +200,21 @@ The final stage of the pipeline merges the tabular physical data (ERATrACS) and 
 
 * **Multimodal Alignment**: Synchronizes ERA5 atmospheric data, GDELT news metrics, and TC-PRIMED satellite imagery into a single object.
 * **Satellite Data Extraction**: Automatically fetches and processes passive microwave (GPROF) and infrared (IR) data from NOAA’s S3 bucket.
-* **Spatial Standardization**: Resizes heterogeneous satellite swaths to a uniform 224x224 grid using bilinear interpolation.
 * **Temporal Matching**: Implements a 1.5-hour time-tolerance window to pair cyclone track observations with the nearest available satellite overpass.
+* **Spatial Standardization**: Resizes heterogeneous satellite swaths to a uniform 224x224 grid using bilinear interpolation.
 * **Quality Metadata**: Tracks spatial and temporal offsets, such as the distance between the storm center and the satellite footprint, to ensure data integrity.
 
 ### Data Processing Pipeline
 
-The script `tc4.py` performs the following operations:
+The script `main.py` performs the following operations:
 
 1.  **Tabular Consolidation**: Loads the ERATrACS CSV and aligns it with daily GDELT news mentions.
 2.  **S3 Querying**: Connects to the `noaa-nesdis-tcprimed-pds` S3 bucket to locate NetCDF files corresponding to specific ATCF storm IDs and years.
 3.  **Image Processing**:
-    * **Masking**: Filters sentinel and fill values (e.g., -9999.0) from IR and GPROF products.
     * **Subgroup Selection**: Prioritizes GPROF subgroups (S1, S2, S3) to ensure consistent variable availability.
-    * **Resizing**: Normalizes all image products (Precipitation, Water Path, IR) to a fixed 224x224 shape.
-4.  **Zarr Serialization**: Writes data into a hierarchical Zarr structure, using chunks optimized for per-timestamp access.
+    * **Masking**: Filters sentinel and fill values (e.g., -9999.0) from IR and GPROF products.
+    * **Resizing**: Normalizes all image to a fixed 224x224 shape.
+5.  **Zarr Serialization**: Writes data into a hierarchical Zarr structure, using chunks optimized for per-timestamp access.
 
 ### Dataset Structure (Zarr)
 
@@ -232,7 +232,7 @@ The output `TC_Clean_Dataset.zarr` is organized by `atcf_id` (e.g., `AL092022`):
 To build the final multimodal dataset, ensure you have S3 access configured and run:
 
 ```bash
-python tc4.py
+python main.py
 ```
 
 ## Contributing
