@@ -5,9 +5,13 @@ import time
 import json
 from typing import List, Dict, Tuple
 from cleaning_original_tab import process_cyclone_data
+from pathlib import Path
 
-INPUT_FILE = "..\\data\\processed\\ibtracs_era5_20251218_1715.csv"
-OUTPUT_FILE = "..\\data\\processed\\ibtracs_era5_20251218_1715_reliefweb.csv"
+script_dir = Path(__file__).resolve().parent
+project_root = script_dir.parent
+
+INPUT_FILE = project_root / "data" / "processed" / "ibtracs_era5_20251218_1715.csv"
+OUTPUT_FILE = project_root / "data" / "processed" / "ibtracs_era5_20251218_2244_reliefweb.csv"
 API_URL = "https://api.reliefweb.int/v1/reports"
 
 
