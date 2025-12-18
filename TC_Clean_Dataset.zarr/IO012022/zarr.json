@@ -1,0 +1,10 @@
+{
+  "attributes": {
+    "storm_id": "2022062N06085",
+    "storm_name": "UNNAMED",
+    "basin": "IO",
+    "year": 2022
+  },
+  "zarr_format": 3,
+  "node_type": "group"
+}
