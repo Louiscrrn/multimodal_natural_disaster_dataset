@@ -4,7 +4,7 @@ import re
 import time
 import json
 from typing import List, Dict, Tuple
-
+from cleaning_original_tab import process_cyclone_data
 
 INPUT_FILE = "..\\data\\processed\\ibtracs_era5_20251218_1520.csv"
 OUTPUT_FILE = "..\\data\\processed\\ibtracs_era5_20251218_1520_reliefweb.csv"
@@ -290,6 +290,7 @@ def extract_impact_data(reports: List[Dict], storm_name: str) -> Dict[str, str]:
 
 
 def main():
+    process_cyclone_data(INPUT_FILE, INPUT_FILE)
     print("=" * 80)
     print("DATASET ENRICHMENT - STRICT FILTERING VERSION")
     print("=" * 80)
