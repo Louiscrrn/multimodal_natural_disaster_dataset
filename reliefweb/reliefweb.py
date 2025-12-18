@@ -6,8 +6,8 @@ import json
 from typing import List, Dict, Tuple
 from cleaning_original_tab import process_cyclone_data
 
-INPUT_FILE = "..\\data\\processed\\ibtracs_era5_20251218_1520.csv"
-OUTPUT_FILE = "..\\data\\processed\\ibtracs_era5_20251218_1520_reliefweb.csv"
+INPUT_FILE = "..\\data\\processed\\ibtracs_era5_20251218_1715.csv"
+OUTPUT_FILE = "..\\data\\processed\\ibtracs_era5_20251218_1715_reliefweb.csv"
 API_URL = "https://api.reliefweb.int/v1/reports"
 
 
