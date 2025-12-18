@@ -218,7 +218,7 @@ The script `main.py` performs the following operations:
 
 ### Dataset Structure (Zarr)
 
-The output `TC_Clean_Dataset.zarr` is organized by `atcf_id` (e.g., `AL092022`):
+The output `TC_Clean_Dataset.zarr` (Dataset on a subset of 15 storms to be lighter) is organized by `atcf_id` (e.g., `AL092022`):
 
 | Group | Description |
 | :--- | :--- |
