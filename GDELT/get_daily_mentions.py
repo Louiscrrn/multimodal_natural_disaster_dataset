@@ -6,7 +6,7 @@ from gdelt_cyclone_pipeline import run_pipeline
 
 
 def main(
-    ibtracs_path="data/processed/ibtracs_era5_20251217_1447.csv",
+    ibtracs_path="data/processed/ibtracs_era5_20251218_1715.csv",
     output_file="data/processed/cyclones_mentions_gdelt_3h_2022_2023.csv",
     start_year=2022,
     end_year=2023,
