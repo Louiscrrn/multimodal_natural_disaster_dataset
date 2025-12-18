@@ -37,6 +37,7 @@ RENAME_COLUMNS = {
     "sid": "Storm_ID",
     "name": "Storm_Name",
     "number" : "number",
+    "usa_atcf_id" : "atcf_id",
     "basin": "Ocean_Basin",
     "season": "Year",
     "time_stamp": "Timestamp",
@@ -207,7 +208,7 @@ def post_process_final(df):
         df = df.drop(columns=["number.1"])
         
     final_columns = [
-        "sid", "name", "basin", "season", "time_stamp", "number",
+        "sid", "name", "basin", "season", "time_stamp", "number", "usa_atcf_id",
         "lat", "lon", "wind", "pressure",
         "storm_speed", "storm_dir",
         "2m_temperature", "mean_sea_level_pressure_hpa",
@@ -257,7 +258,7 @@ def parse_args():
     parser.add_argument(
         "--input-ibtracs",
         type=str,
-        default=str(PROCESSED_DIR / "other/ibtracs_usa_20251217_170934.csv"),
+        default=str(PROCESSED_DIR / "other/ibtracs_processed_20251218_004636.csv"),
         help="Path to IBTrACS CSV file"
     )
 

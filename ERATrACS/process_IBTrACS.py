@@ -6,7 +6,7 @@ import argparse
 
 
 DEFAULT_VARS = [
-    "sid", "name", "season", "number", "basin",
+    "sid", "name", "season", "number", "basin", "usa_atcf_id",
     "time",
     "usa_lat", "usa_lon",
     "usa_wind", "usa_pres",
@@ -80,14 +80,16 @@ def parse_args():
     parser.add_argument(
         "--input",
         type=str,
-        required=True,
+        required=False,
+        default="../data/raw/IBTrACS.ALL.v04r01.nc",
         help="Path to IBTrACS NetCDF file"
     )
 
     parser.add_argument(
         "--output-dir",
         type=str,
-        required=True,
+        required=False,
+        default="../data/raw/",
         help="Directory to save processed CSV"
     )
 
