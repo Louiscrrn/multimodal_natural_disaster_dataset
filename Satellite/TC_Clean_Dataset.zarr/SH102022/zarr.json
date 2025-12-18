@@ -1,0 +1,10 @@
+{
+  "attributes": {
+    "storm_id": "2022034S16082",
+    "storm_name": "CLIFF",
+    "basin": "SH",
+    "year": 2022
+  },
+  "zarr_format": 3,
+  "node_type": "group"
+}

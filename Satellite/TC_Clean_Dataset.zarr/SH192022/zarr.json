@@ -1,0 +1,10 @@
+{
+  "attributes": {
+    "storm_id": "2022065S16055",
+    "storm_name": "GOMBE",
+    "basin": "SH",
+    "year": 2022
+  },
+  "zarr_format": 3,
+  "node_type": "group"
+}
