@@ -7,3 +7,7 @@ plotly
 requests
 cdsapi
 tqdm
+re
+typing
+pathlib
+
